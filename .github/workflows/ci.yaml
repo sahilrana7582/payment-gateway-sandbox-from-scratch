@@ -1,0 +1,201 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, feature/**]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel in-progress runs for PRs; never cancel on main.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"        # Full rebuilds are cheaper than incremental in CI
+  CARGO_NET_RETRY: "10"
+  RUSTUP_MAX_RETRIES: "10"
+  RUST_BACKTRACE: short
+  SQLX_OFFLINE: "true"          # Unit/lint jobs run without a DB (requires .sqlx/ committed)
+
+# ────────────────────────────────────────────────────────────────────────────────
+# ROUND 1 — Fast gates. All parallel. A failure here kills the entire pipeline.
+# ────────────────────────────────────────────────────────────────────────────────
+jobs:
+
+  # 1. FORMAT — cheapest check, runs first, fails loudest
+  fmt:
+    name: Format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - run: cargo fmt --all -- --check
+
+  # 2. CLIPPY — full workspace, all targets, all features, warnings are errors
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: clippy
+
+      # -D warnings: all warnings are errors
+      # -D clippy::unwrap_used: no .unwrap() outside tests (see clippy.toml: allow-unwrap-in-tests)
+      # -D clippy::expect_used: no .expect() outside tests (money must not panic)
+      # -D clippy::todo: no forgotten TODOs ship to main
+      # -D clippy::float_arithmetic: floats in payment logic is a bug
+      #
+      # clippy::pedantic is intentionally OFF while the project is still taking shape
+      # (it's all style nits: must_use_candidate, missing_errors_doc, unreadable_literal, etc).
+      # Re-enable it once the core domain/API surface has settled.
+      - run: |
+          cargo clippy --all-targets --all-features -- \
+            -D warnings \
+            -D clippy::unwrap_used \
+            -D clippy::expect_used \
+            -D clippy::todo \
+            -D clippy::float_arithmetic \
+            -D clippy::cast_possible_truncation \
+            -D clippy::cast_sign_loss
+
+  # 3. DENY — license compliance + known-malicious crates (reads deny.toml)
+  # deny:
+  #   name: Cargo Deny
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: EmbarkStudios/cargo-deny-action@v1
+  #       with:
+  #         command: check
+  #         arguments: --all-features
+  #         manifest-path: Cargo.toml
+  #         log-level: warn
+  #         # The action's container ships an old bundled Rust that can't parse
+  #         # our `version = 4` Cargo.lock; update it before running cargo-deny.
+  #         rust-version: stable
+
+  # 4. AUDIT — RustSec advisory database (CVE check on all deps)
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # 5. SECRETS — detect leaked keys/tokens before they hit the DB
+  secrets:
+    name: Secret Scan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # Full history — gitleaks scans all commits
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# ────────────────────────────────────────────────────────────────────────────────
+# ROUND 2 — Compile gates. Run only after format passes (no point compiling
+# broken code). These run in parallel.
+# ────────────────────────────────────────────────────────────────────────────────
+
+  # 6. CHECK — fast type-check, no codegen. Catches the 90% of compile errors.
+  check:
+    name: Check
+    runs-on: ubuntu-24.04
+    needs: [fmt]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check --all-targets --all-features
+
+  # 7. MSRV — enforce the minimum supported Rust version from Cargo.toml
+  # (rust-version = "1.85"). Users will compile with old toolchains.
+  # Note: 1.85 is required because `uuid`'s `v7` feature pulls in `getrandom`
+  # 0.4, which is edition2024 and declares rust-version = "1.85" itself; it's
+  # also the first Cargo that understands the `version = 4` Cargo.lock format.
+  # msrv:
+  #   name: MSRV (1.85)
+  #   runs-on: ubuntu-24.04
+  #   needs: [fmt]
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     # Matches workspace rust-version = "1.85" in Cargo.toml
+  #     - uses: dtolnay/rust-toolchain@1.85
+
+  #     - uses: Swatinem/rust-cache@v2
+  #       with:
+  #         key: msrv
+
+  #     # --no-dev-deps: MSRV check for library users, not for our test helpers
+  #     - run: cargo check --all-features
+
+# ────────────────────────────────────────────────────────────────────────────────
+# ROUND 3 — Tests. Run only after compile gates pass + security checks pass.
+# ────────────────────────────────────────────────────────────────────────────────
+
+  # 9. UNIT TESTS — no infrastructure. Pure domain logic.
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+    needs: [check, clippy, audit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: test
+      - uses: taiki-e/install-action@cargo-nextest
+
+      # --lib: only lib tests (unit tests inside crate modules)
+      # --all-features: activate all feature flags
+      # --no-fail-fast: report all failures, not just the first
+      - run: cargo nextest run --lib --all-features --no-fail-fast
+
+# ────────────────────────────────────────────────────────────────────────────────
+# FINAL — Aggregate status check. Configure this as the required PR gate in
+# GitHub branch protection settings. A single required check is simpler than
+# listing every job individually.
+# ────────────────────────────────────────────────────────────────────────────────
+
+  ci-pass:
+    name: CI Pass
+    runs-on: ubuntu-24.04
+    if: always()
+    needs:
+      - fmt
+      - clippy
+      # - deny
+      - audit
+      - secrets
+      - check
+      # - msrv
+      - test-unit
+    steps:
+      - name: Verify all required jobs passed
+        run: |
+          results='${{ toJSON(needs.*.result) }}'
+          echo "Job results: $results"
+          if echo "$results" | grep -qE '"(failure|cancelled)"'; then
+            echo "❌ One or more CI jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "✅ All CI jobs passed."

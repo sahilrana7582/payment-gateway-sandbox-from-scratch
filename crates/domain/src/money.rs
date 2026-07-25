@@ -137,6 +137,7 @@ impl Money {
     }
 
     /// Checked addition. Fails on currency mismatch or `i64` overflow.
+    #[allow(clippy::should_implement_trait)] // returns Result, not std::ops::Add
     pub fn add(self, other: Self) -> Result<Self, MoneyError> {
         self.check_same_currency(other)?;
         let minor = self
@@ -150,6 +151,7 @@ impl Money {
     }
 
     /// Checked subtraction. Result may be negative (ledger use case).
+    #[allow(clippy::should_implement_trait)] // returns Result, not std::ops::Sub
     pub fn sub(self, other: Self) -> Result<Self, MoneyError> {
         self.check_same_currency(other)?;
         let minor = self
