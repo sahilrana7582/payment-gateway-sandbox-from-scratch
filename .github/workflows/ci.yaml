@@ -83,6 +83,9 @@ jobs:
           arguments: --all-features
           manifest-path: Cargo.toml
           log-level: warn
+          # The action's container ships an old bundled Rust that can't parse
+          # our `version = 4` Cargo.lock; update it before running cargo-deny.
+          rust-version: stable
 
   # 4. AUDIT — RustSec advisory database (CVE check on all deps)
   audit:
@@ -124,18 +127,19 @@ jobs:
       - run: cargo check --all-targets --all-features
 
   # 7. MSRV — enforce the minimum supported Rust version from Cargo.toml
-  # (rust-version = "1.78"). Users will compile with old toolchains.
-  # Note: 1.78 is also the minimum Cargo version that understands the
-  # `version = 4` Cargo.lock format; older toolchains can't parse the lockfile.
+  # (rust-version = "1.85"). Users will compile with old toolchains.
+  # Note: 1.85 is required because `uuid`'s `v7` feature pulls in `getrandom`
+  # 0.4, which is edition2024 and declares rust-version = "1.85" itself; it's
+  # also the first Cargo that understands the `version = 4` Cargo.lock format.
   msrv:
-    name: MSRV (1.78)
+    name: MSRV (1.85)
     runs-on: ubuntu-24.04
     needs: [fmt]
     steps:
       - uses: actions/checkout@v4
 
-      # Matches workspace rust-version = "1.78" in Cargo.toml
-      - uses: dtolnay/rust-toolchain@1.78
+      # Matches workspace rust-version = "1.85" in Cargo.toml
+      - uses: dtolnay/rust-toolchain@1.85
 
       - uses: Swatinem/rust-cache@v2
         with:
