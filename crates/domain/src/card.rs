@@ -1,4 +1,3 @@
-use core::fmt;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use time::OffsetDateTime;
@@ -123,9 +122,9 @@ impl CardDetails {
     }
 
     pub fn assert_not_expired(&self, now: OffsetDateTime) -> Result<(), CardDetailsError> {
-        let now_year = now.year() as u16;
-        let now_month = now.month() as u8;
-        if self.exp_year < now_year || (self.exp_year == now_year && self.exp_month < now_month) {
+        let exp_year = i32::from(self.exp_year);
+        let now_month = u8::from(now.month());
+        if exp_year < now.year() || (exp_year == now.year() && self.exp_month < now_month) {
             return Err(CardDetailsError::Expired);
         }
         Ok(())
