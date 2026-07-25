@@ -1,0 +1,18 @@
+[package]
+name              = "domain"
+version           = "0.1.0"
+edition           = "2021"
+
+[dependencies]
+serde = {workspace = true}
+uuid = {workspace = true}
+time = {workspace = true}
+thiserror = {workspace = true}
+
+[dev-dependencies]
+serde_json = {workspace = true}
+rstest = {workspace = true}
+proptest = {workspace = true}
+
+[lints.rust]
+unsafe_code = "forbid"

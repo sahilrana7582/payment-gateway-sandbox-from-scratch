@@ -1,0 +1,16 @@
+/target
+**/*.rs.bk
+.env
+.env.local
+dist/
+node_modules/
+.docusaurus/
+sdk/browser/dist/
+sdk/rust/target/
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
