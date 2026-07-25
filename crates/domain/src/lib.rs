@@ -2,4 +2,5 @@
 
 pub mod id;
 pub mod money;
-// pub mod status;
+pub mod order_status;
+pub mod payment_status;

@@ -194,20 +194,30 @@ impl Prefixed for JobMarker {
     const PREFIX: &'static str = "job";
 }
 
-pub type PaymentIntentId      = Id<PaymentIntentMarker>;
-pub type PaymentMethodId      = Id<PaymentMethodMarker>;
-pub type CustomerId           = Id<CustomerMarker>;
-pub type RefundId             = Id<RefundMarker>;
-pub type DisputeId            = Id<DisputeMarker>;
-pub type MerchantId           = Id<MerchantMarker>;
-pub type ApiKeyId             = Id<ApiKeyMarker>;
-pub type EventId              = Id<EventMarker>;
-pub type WebhookEndpointId    = Id<WebhookEndpointMarker>;
-pub type SettlementId         = Id<SettlementMarker>;
-pub type LedgerTransactionId  = Id<LedgerTransactionMarker>;
-pub type JobId                = Id<JobMarker>;
+pub struct OrderMarker;
+impl Prefixed for OrderMarker {
+    const PREFIX: &'static str = "order";
+}
+pub type OrderId = Id<OrderMarker>;
 
+pub struct PaymentMarker;
+impl Prefixed for PaymentMarker {
+    const PREFIX: &'static str = "pay";
+}
+pub type PaymentId = Id<PaymentMarker>;
 
+pub type PaymentIntentId = Id<PaymentIntentMarker>;
+pub type PaymentMethodId = Id<PaymentMethodMarker>;
+pub type CustomerId = Id<CustomerMarker>;
+pub type RefundId = Id<RefundMarker>;
+pub type DisputeId = Id<DisputeMarker>;
+pub type MerchantId = Id<MerchantMarker>;
+pub type ApiKeyId = Id<ApiKeyMarker>;
+pub type EventId = Id<EventMarker>;
+pub type WebhookEndpointId = Id<WebhookEndpointMarker>;
+pub type SettlementId = Id<SettlementMarker>;
+pub type LedgerTransactionId = Id<LedgerTransactionMarker>;
+pub type JobId = Id<JobMarker>;
 
 #[cfg(test)]
 mod tests {
