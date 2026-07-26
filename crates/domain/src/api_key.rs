@@ -5,7 +5,10 @@ use crate::id::{ApiKeyId, MerchantId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "db", derive(sqlx::Type))]
-#[cfg_attr(feature = "db", sqlx(type_name = "api_key_kind", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "db",
+    sqlx(type_name = "api_key_kind", rename_all = "snake_case")
+)]
 #[serde(rename_all = "snake_case")]
 pub enum ApiKeyKind {
     /// `sk_test_...` — server-to-server only. Never appears in browser code.
