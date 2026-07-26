@@ -3,6 +3,8 @@ use thiserror::Error;
 use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "db", derive(sqlx::Type))]
+#[cfg_attr(feature = "db", sqlx(type_name = "card_brand", rename_all = "snake_case"))]
 #[serde(rename_all = "snake_case")]
 pub enum CardBrand {
     Visa,

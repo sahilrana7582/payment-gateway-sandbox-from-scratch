@@ -9,6 +9,10 @@ serde = {workspace = true}
 uuid = {workspace = true}
 time = {workspace = true}
 thiserror = {workspace = true}
+sqlx = { workspace = true, optional = true }
+
+[features]
+db = ["dep:sqlx"]
 
 [dev-dependencies]
 serde_json = {workspace = true}
