@@ -185,7 +185,15 @@ mod tests {
         crate::tx::commit(tx).await.unwrap();
 
         record_attempt(
-            &pool, did, DeliveryStatus::Delivered, Some(200), Some("ok"), 42, None, 1, now(),
+            &pool,
+            did,
+            DeliveryStatus::Delivered,
+            Some(200),
+            Some("ok"),
+            42,
+            None,
+            1,
+            now(),
         )
         .await
         .unwrap();
