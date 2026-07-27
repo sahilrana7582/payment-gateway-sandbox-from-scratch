@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO settlements\n            (id, merchant_id, currency, period_start, period_end,\n             gross_minor, fees_minor, tax_minor, refunds_minor, net_minor,\n             status, created_at, processed_at)\n        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bpchar",
+        "Timestamptz",
+        "Timestamptz",
+        "Int8",
+        "Int8",
+        "Int8",
+        "Int8",
+        "Int8",
+        {
+          "Custom": {
+            "name": "settlement_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "processed"
+              ]
+            }
+          }
+        },
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a2ea5499425261102b0ab7fb980ad757d2aad08d8d166d330e95151a90970d41"
+}

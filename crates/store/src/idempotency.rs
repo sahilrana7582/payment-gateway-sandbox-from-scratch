@@ -3,8 +3,8 @@
 //! The algorithm lives here as three functions the middleware calls in order:
 //!
 //!   1. `acquire`  — atomic INSERT ... ON CONFLICT DO NOTHING. Returns an
-//!                   `AcquireOutcome` telling the caller whether it owns the
-//!                   request, should replay a stored response, or must reject.
+//!      `AcquireOutcome` telling the caller whether it owns the
+//!      request, should replay a stored response, or must reject.
 //!   2. `complete` — store the response so a later replay can return it.
 //!   3. `purge_expired` — housekeeping job.
 //!

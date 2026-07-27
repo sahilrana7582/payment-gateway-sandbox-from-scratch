@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE disputes\n        SET status = $2,\n            evidence = COALESCE($3, evidence),\n            resolved_at = $4\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "dispute_status",
+            "kind": {
+              "Enum": [
+                "open",
+                "under_review",
+                "won",
+                "lost"
+              ]
+            }
+          }
+        },
+        "Jsonb",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5e6517e10d9e763fe2d10e8e2960eb722169b436b001b103112b3d848e479657"
+}
