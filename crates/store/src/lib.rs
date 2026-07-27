@@ -2,6 +2,7 @@
 
 pub mod api_key;
 pub mod error;
+pub mod event;
 pub mod job;
 pub mod ledger;
 pub mod merchant;
