@@ -13,4 +13,6 @@ pub mod tx;
 pub mod types;
 pub mod webhook_delivery;
 pub mod webhook_endpoint;
+pub mod idempotency;
+pub mod refund;
 pub use error::{StoreError, StoreResult};

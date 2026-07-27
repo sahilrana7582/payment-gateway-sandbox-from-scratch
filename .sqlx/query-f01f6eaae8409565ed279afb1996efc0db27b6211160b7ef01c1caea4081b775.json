@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        DELETE FROM idempotency_keys\n        WHERE merchant_id = $1 AND key = $2 AND state = 'in_progress'\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f01f6eaae8409565ed279afb1996efc0db27b6211160b7ef01c1caea4081b775"
+}

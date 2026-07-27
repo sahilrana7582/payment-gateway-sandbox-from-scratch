@@ -1,0 +1,75 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT request_hash, state AS \"state: IdempotencyState\",\n               response_status, response_body\n        FROM idempotency_keys\n        WHERE merchant_id = $1 AND key = $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "request_hash",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "request_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "state: IdempotencyState",
+        "type_info": {
+          "Custom": {
+            "name": "idempotency_state",
+            "kind": {
+              "Enum": [
+                "in_progress",
+                "completed"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "state"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "response_status",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "response_status"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "response_body",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "response_body"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "80a8053073d7cf5c6421bceb58234f9cff0257964495142bdd7a7bf22c112746"
+}
