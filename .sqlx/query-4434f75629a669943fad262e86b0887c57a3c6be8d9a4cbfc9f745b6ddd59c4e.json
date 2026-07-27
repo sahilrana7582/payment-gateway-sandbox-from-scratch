@@ -1,0 +1,95 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, merchant_id, account_type AS \"account_type: AccountType\", currency\n        FROM ledger_accounts\n        WHERE account_type = $1 AND currency = $2 AND merchant_id IS NULL\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ledger_accounts",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "merchant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ledger_accounts",
+            "name": "merchant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "account_type: AccountType",
+        "type_info": {
+          "Custom": {
+            "name": "ledger_account_type",
+            "kind": {
+              "Enum": [
+                "gateway_clearing",
+                "merchant_pending",
+                "merchant_available",
+                "merchant_reserve",
+                "dispute_holding",
+                "platform_revenue",
+                "tax_payable"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "ledger_accounts",
+            "name": "account_type"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "currency",
+        "type_info": "Bpchar",
+        "origin": {
+          "Table": {
+            "table": "ledger_accounts",
+            "name": "currency"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "ledger_account_type",
+            "kind": {
+              "Enum": [
+                "gateway_clearing",
+                "merchant_pending",
+                "merchant_available",
+                "merchant_reserve",
+                "dispute_holding",
+                "platform_revenue",
+                "tax_payable"
+              ]
+            }
+          }
+        },
+        "Bpchar"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "4434f75629a669943fad262e86b0887c57a3c6be8d9a4cbfc9f745b6ddd59c4e"
+}

@@ -8,6 +8,11 @@ use crate::money::Currency;
 /// Why a ledger transaction was posted. Stored alongside the entries so the
 /// dashboard and any audit can explain every movement of money.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "db", derive(sqlx::Type))]
+#[cfg_attr(
+    feature = "db",
+    sqlx(type_name = "ledger_transaction_kind", rename_all = "snake_case")
+)]
 #[serde(rename_all = "snake_case")]
 pub enum LedgerTransactionKind {
     /// A payment was captured: funds move from clearing into merchant pending.

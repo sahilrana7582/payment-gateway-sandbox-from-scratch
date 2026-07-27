@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO ledger_accounts (id, merchant_id, account_type, currency, created_at)\n        VALUES ($1, $2, $3, $4, now())\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "ledger_account_type",
+            "kind": {
+              "Enum": [
+                "gateway_clearing",
+                "merchant_pending",
+                "merchant_available",
+                "merchant_reserve",
+                "dispute_holding",
+                "platform_revenue",
+                "tax_payable"
+              ]
+            }
+          }
+        },
+        "Bpchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "eab39c5df2908f517347264111cfc64c592e2eab25d072b2de2ca8cd52e73a62"
+}

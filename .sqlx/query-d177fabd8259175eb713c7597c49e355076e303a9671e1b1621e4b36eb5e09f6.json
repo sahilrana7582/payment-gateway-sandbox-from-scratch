@@ -1,0 +1,51 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT a.account_type AS \"account_type: AccountType\",\n               COALESCE(SUM(e.amount_minor), 0)::bigint AS \"balance!\"\n        FROM ledger_accounts a\n        LEFT JOIN ledger_entries e ON e.account_id = a.id\n        WHERE a.merchant_id = $1 AND a.currency = $2\n        GROUP BY a.account_type\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "account_type: AccountType",
+        "type_info": {
+          "Custom": {
+            "name": "ledger_account_type",
+            "kind": {
+              "Enum": [
+                "gateway_clearing",
+                "merchant_pending",
+                "merchant_available",
+                "merchant_reserve",
+                "dispute_holding",
+                "platform_revenue",
+                "tax_payable"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "ledger_accounts",
+            "name": "account_type"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "balance!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bpchar"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "d177fabd8259175eb713c7597c49e355076e303a9671e1b1621e4b36eb5e09f6"
+}
