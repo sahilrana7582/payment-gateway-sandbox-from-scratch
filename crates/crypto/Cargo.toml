@@ -1,0 +1,16 @@
+[package]
+name    = "crypto"
+version = "0.1.0"
+edition = { workspace = true }
+
+[dependencies]
+argon2    = { workspace = true }
+hmac      = { workspace = true }
+sha2      = { workspace = true }
+aes-gcm   = { workspace = true }
+rand      = { workspace = true }
+hex       = { workspace = true }
+thiserror = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"
