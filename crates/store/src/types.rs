@@ -1,4 +1,3 @@
-
 //! The bridge between domain types and their SQL representations.
 //!
 //! Design rule: the `domain` crate stays free of database concerns, so the
@@ -64,11 +63,11 @@ pub mod scopes {
 
     fn parse_scope(s: &str) -> Option<Scope> {
         Some(match s {
-            "orders:read"     => Scope::OrdersRead,
-            "orders:write"    => Scope::OrdersWrite,
-            "payments:read"   => Scope::PaymentsRead,
-            "payments:write"  => Scope::PaymentsWrite,
-            "refunds:write"   => Scope::RefundsWrite,
+            "orders:read" => Scope::OrdersRead,
+            "orders:write" => Scope::OrdersWrite,
+            "payments:read" => Scope::PaymentsRead,
+            "payments:write" => Scope::PaymentsWrite,
+            "refunds:write" => Scope::RefundsWrite,
             "webhooks:manage" => Scope::WebhooksManage,
             _ => return None, // unknown scope string is ignored, not fatal
         })
