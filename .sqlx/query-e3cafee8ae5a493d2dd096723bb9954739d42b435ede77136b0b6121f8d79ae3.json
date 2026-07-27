@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE jobs\n                SET state = 'pending', run_at = $3, last_error = $2,\n                    locked_at = NULL, locked_by = NULL, updated_at = $4\n                WHERE id = $1\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e3cafee8ae5a493d2dd096723bb9954739d42b435ede77136b0b6121f8d79ae3"
+}
