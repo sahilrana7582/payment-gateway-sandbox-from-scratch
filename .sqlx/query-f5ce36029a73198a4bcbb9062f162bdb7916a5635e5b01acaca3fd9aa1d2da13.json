@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE webhook_deliveries\n        SET status = $2, response_status = $3, response_body = $4,\n            duration_ms = $5, next_retry_at = $6, attempt = $7, updated_at = $8\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "webhook_delivery_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "delivered",
+                "failed",
+                "dead"
+              ]
+            }
+          }
+        },
+        "Int4",
+        "Text",
+        "Int4",
+        "Timestamptz",
+        "Int4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f5ce36029a73198a4bcbb9062f162bdb7916a5635e5b01acaca3fd9aa1d2da13"
+}

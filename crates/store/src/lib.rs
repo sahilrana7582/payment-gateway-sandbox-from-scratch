@@ -12,4 +12,5 @@ pub mod pool;
 pub mod tx;
 pub mod types;
 pub mod webhook_endpoint;
+pub mod webhook_delivery;
 pub use error::{StoreError, StoreResult};
