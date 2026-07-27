@@ -147,13 +147,10 @@ pub async fn release(pool: &PgPool, merchant_id: MerchantId, key: &str) -> Store
 
 /// Housekeeping: drop keys past their 24h window.
 pub async fn purge_expired(pool: &PgPool, now: OffsetDateTime) -> StoreResult<u64> {
-    let affected = sqlx::query!(
-        r#"DELETE FROM idempotency_keys WHERE expires_at < $1"#,
-        now,
-    )
-    .execute(pool)
-    .await?
-    .rows_affected();
+    let affected = sqlx::query!(r#"DELETE FROM idempotency_keys WHERE expires_at < $1"#, now,)
+        .execute(pool)
+        .await?
+        .rows_affected();
     Ok(affected)
 }
 
@@ -180,38 +177,78 @@ mod tests {
     #[sqlx::test(migrations = "../../migrations")]
     async fn first_caller_acquires(pool: PgPool) {
         let mid = seed_merchant(&pool).await;
-        let out = acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
-            .await
-            .unwrap();
+        let out = acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         assert_eq!(out, AcquireOutcome::Acquired);
     }
 
     #[sqlx::test(migrations = "../../migrations")]
     async fn second_caller_while_in_flight_is_rejected(pool: PgPool) {
         let mid = seed_merchant(&pool).await;
-        acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
-            .await
-            .unwrap();
+        acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
 
-        let out = acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
-            .await
-            .unwrap();
+        let out = acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         assert_eq!(out, AcquireOutcome::InFlight);
     }
 
     #[sqlx::test(migrations = "../../migrations")]
     async fn completed_key_replays_the_original_response(pool: PgPool) {
         let mid = seed_merchant(&pool).await;
-        acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
-            .await
-            .unwrap();
+        acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         complete(&pool, mid, "key_1", 201, &json!({"id": "pay_1"}))
             .await
             .unwrap();
 
-        let out = acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
-            .await
-            .unwrap();
+        let out = acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         match out {
             AcquireOutcome::Replay { status, body } => {
                 assert_eq!(status, 201);
@@ -224,30 +261,64 @@ mod tests {
     #[sqlx::test(migrations = "../../migrations")]
     async fn same_key_different_body_is_a_mismatch(pool: PgPool) {
         let mid = seed_merchant(&pool).await;
-        acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
+        acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
+        complete(&pool, mid, "key_1", 201, &json!({}))
             .await
             .unwrap();
-        complete(&pool, mid, "key_1", 201, &json!({})).await.unwrap();
 
         // Different request hash for the same key.
-        let out = acquire(&pool, mid, "key_1", "/v1/payments", "hash_DIFFERENT", expires(), now())
-            .await
-            .unwrap();
+        let out = acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_DIFFERENT",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         assert_eq!(out, AcquireOutcome::Mismatch);
     }
 
     #[sqlx::test(migrations = "../../migrations")]
     async fn release_allows_a_legitimate_retry(pool: PgPool) {
         let mid = seed_merchant(&pool).await;
-        acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
-            .await
-            .unwrap();
+        acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         // Request blew up before completing.
         release(&pool, mid, "key_1").await.unwrap();
 
-        let out = acquire(&pool, mid, "key_1", "/v1/payments", "hash_a", expires(), now())
-            .await
-            .unwrap();
+        let out = acquire(
+            &pool,
+            mid,
+            "key_1",
+            "/v1/payments",
+            "hash_a",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         assert_eq!(out, AcquireOutcome::Acquired);
     }
 
@@ -260,13 +331,29 @@ mod tests {
             m.id
         };
 
-        acquire(&pool, m1, "shared_key", "/v1/payments", "h", expires(), now())
-            .await
-            .unwrap();
+        acquire(
+            &pool,
+            m1,
+            "shared_key",
+            "/v1/payments",
+            "h",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         // Same key string, different merchant — must be independent.
-        let out = acquire(&pool, m2, "shared_key", "/v1/payments", "h", expires(), now())
-            .await
-            .unwrap();
+        let out = acquire(
+            &pool,
+            m2,
+            "shared_key",
+            "/v1/payments",
+            "h",
+            expires(),
+            now(),
+        )
+        .await
+        .unwrap();
         assert_eq!(out, AcquireOutcome::Acquired);
     }
 

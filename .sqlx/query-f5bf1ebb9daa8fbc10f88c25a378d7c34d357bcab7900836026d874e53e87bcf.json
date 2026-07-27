@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE refunds SET status = $2, processed_at = $3 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "refund_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "processed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f5bf1ebb9daa8fbc10f88c25a378d7c34d357bcab7900836026d874e53e87bcf"
+}
