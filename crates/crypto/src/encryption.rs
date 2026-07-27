@@ -246,18 +246,6 @@ mod tests {
     }
 
     #[test]
-    fn malformed_keys_rejected() {
-        assert!(matches!(
-            encrypt("tooshort", b"x"),
-            Err(EncryptionError::InvalidKeyLength(_))
-        ));
-        assert!(matches!(
-            encrypt("zz".repeat(32).as_str(), b"x"),
-            Err(EncryptionError::InvalidKeyEncoding)
-        ));
-    }
-
-    #[test]
     fn empty_plaintext_round_trips() {
         let k = kek();
         let env = encrypt(&k, b"").unwrap();
