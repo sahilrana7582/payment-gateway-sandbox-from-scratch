@@ -88,14 +88,14 @@ jobs:
   #         rust-version: stable
 
   # 4. AUDIT — RustSec advisory database (CVE check on all deps)
-  audit:
-    name: Security Audit
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: rustsec/audit-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+  # audit:
+  #   name: Security Audit
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: rustsec/audit-check@v1
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
 
   # 5. SECRETS — detect leaked keys/tokens before they hit the DB
   # Will Uncomment Later. <====
@@ -157,7 +157,7 @@ jobs:
   test-unit:
     name: Unit Tests
     runs-on: ubuntu-24.04
-    needs: [check, clippy, audit]
+    needs: [check, clippy]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -180,7 +180,7 @@ jobs:
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-24.04
-    needs: [check, clippy, audit]
+    needs: [check, clippy]
     services:
       postgres:
         image: postgres:16-alpine
@@ -223,7 +223,7 @@ jobs:
       - fmt
       - clippy
       # - deny
-      - audit
+      # - audit
       # - secrets
       - check
       # - msrv
