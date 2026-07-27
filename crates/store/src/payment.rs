@@ -54,13 +54,19 @@ impl PaymentRow {
             self.card_exp_year,
             self.card_fingerprint,
         ) {
-            (Some(last4), Some(brand), Some(m), Some(y), Some(fp)) => Some(CardDetails {
-                last4,
-                brand,
-                exp_month: m as u8,
-                exp_year: y as u16,
-                fingerprint: fp,
-            }),
+            (Some(last4), Some(brand), Some(m), Some(y), Some(fp)) => {
+                let exp_month = u8::try_from(m)
+                    .map_err(|_| StoreError::decode("payment.card_exp_month", m.to_string()))?;
+                let exp_year = u16::try_from(y)
+                    .map_err(|_| StoreError::decode("payment.card_exp_year", y.to_string()))?;
+                Some(CardDetails {
+                    last4,
+                    brand,
+                    exp_month,
+                    exp_year,
+                    fingerprint: fp,
+                })
+            }
             _ => None,
         };
 
