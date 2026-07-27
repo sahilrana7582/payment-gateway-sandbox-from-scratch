@@ -204,8 +204,14 @@ pub struct PaymentMarker;
 impl Prefixed for PaymentMarker {
     const PREFIX: &'static str = "pay";
 }
-pub type PaymentId = Id<PaymentMarker>;
 
+pub struct LedgerAccountMarker;
+impl Prefixed for LedgerAccountMarker {
+    const PREFIX: &'static str = "acct";
+}
+
+pub type LedgerAccountId = Id<LedgerAccountMarker>;
+pub type PaymentId = Id<PaymentMarker>;
 pub type PaymentIntentId = Id<PaymentIntentMarker>;
 pub type PaymentMethodId = Id<PaymentMethodMarker>;
 pub type CustomerId = Id<CustomerMarker>;

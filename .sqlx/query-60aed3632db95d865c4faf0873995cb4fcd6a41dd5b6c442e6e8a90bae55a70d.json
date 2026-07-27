@@ -1,0 +1,269 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, order_id, merchant_id, amount_minor, currency, amount_refunded,\n               method AS \"method: PaymentMethodType\",\n               card_last4, card_brand AS \"card_brand: CardBrand\",\n               card_exp_month, card_exp_year, card_fingerprint,\n               status AS \"status: PaymentStatus\",\n               error_code, error_description, notes, created_at, captured_at\n        FROM payments\n        WHERE order_id = $1\n        ORDER BY created_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "order_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "order_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "merchant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "merchant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "amount_minor",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "amount_minor"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "currency",
+        "type_info": "Bpchar",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "currency"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "amount_refunded",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "amount_refunded"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "method: PaymentMethodType",
+        "type_info": {
+          "Custom": {
+            "name": "payment_method_type",
+            "kind": {
+              "Enum": [
+                "card"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "method"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "card_last4",
+        "type_info": "Bpchar",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "card_last4"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "card_brand: CardBrand",
+        "type_info": {
+          "Custom": {
+            "name": "card_brand",
+            "kind": {
+              "Enum": [
+                "visa",
+                "mastercard",
+                "amex",
+                "rupay",
+                "discover",
+                "unknown"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "card_brand"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "card_exp_month",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "card_exp_month"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "card_exp_year",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "card_exp_year"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "card_fingerprint",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "card_fingerprint"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "status: PaymentStatus",
+        "type_info": {
+          "Custom": {
+            "name": "payment_status",
+            "kind": {
+              "Enum": [
+                "created",
+                "requires_action",
+                "authorized",
+                "captured",
+                "failed",
+                "refunded"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "error_code",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "error_code"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "error_description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "error_description"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "notes",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "notes"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "captured_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "captured_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "60aed3632db95d865c4faf0873995cb4fcd6a41dd5b6c442e6e8a90bae55a70d"
+}
