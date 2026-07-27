@@ -29,6 +29,8 @@ type HmacSha256 = Hmac<Sha256>;
 pub fn card_fingerprint(pepper: &str, card_number: &str) -> String {
     let digits: String = card_number.chars().filter(|c| c.is_ascii_digit()).collect();
 
+    // HMAC-SHA256 accepts keys of any length, so this can never fail.
+    #[allow(clippy::expect_used)]
     let mut mac =
         HmacSha256::new_from_slice(pepper.as_bytes()).expect("HMAC accepts keys of any length");
     mac.update(digits.as_bytes());

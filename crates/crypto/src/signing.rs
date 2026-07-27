@@ -45,6 +45,8 @@ pub enum SignatureError {
 
 /// Compute the raw HMAC-SHA256 of `{timestamp}.{payload}`, hex encoded.
 pub fn compute(secret: &str, timestamp: i64, payload: &[u8]) -> String {
+    // HMAC-SHA256 accepts keys of any length, so this can never fail.
+    #[allow(clippy::expect_used)]
     let mut mac =
         HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC accepts keys of any length");
     mac.update(timestamp.to_string().as_bytes());
@@ -88,6 +90,8 @@ pub fn verify(
 
     let provided_bytes = hex::decode(provided).map_err(|_| SignatureError::MalformedHeader)?;
 
+    // HMAC-SHA256 accepts keys of any length, so this can never fail.
+    #[allow(clippy::expect_used)]
     let mut mac =
         HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC accepts keys of any length");
     mac.update(timestamp.to_string().as_bytes());
@@ -133,6 +137,8 @@ fn parse_header(header: &str) -> Result<(i64, &str), SignatureError> {
 /// no extra setup. Matches Razorpay's construction so the integration lesson
 /// transfers directly.
 pub fn sign_handoff(secret_key: &str, order_id: &str, payment_id: &str) -> String {
+    // HMAC-SHA256 accepts keys of any length, so this can never fail.
+    #[allow(clippy::expect_used)]
     let mut mac =
         HmacSha256::new_from_slice(secret_key.as_bytes()).expect("HMAC accepts keys of any length");
     mac.update(order_id.as_bytes());
@@ -150,6 +156,8 @@ pub fn verify_handoff(
 ) -> Result<(), SignatureError> {
     let provided_bytes = hex::decode(provided).map_err(|_| SignatureError::MalformedHeader)?;
 
+    // HMAC-SHA256 accepts keys of any length, so this can never fail.
+    #[allow(clippy::expect_used)]
     let mut mac =
         HmacSha256::new_from_slice(secret_key.as_bytes()).expect("HMAC accepts keys of any length");
     mac.update(order_id.as_bytes());

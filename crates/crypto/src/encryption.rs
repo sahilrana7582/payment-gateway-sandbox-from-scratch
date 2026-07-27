@@ -93,13 +93,12 @@ fn open(key_bytes: &[u8; 32], sealed: &[u8]) -> Result<Vec<u8>, EncryptionError>
     if sealed.len() < NONCE_LEN {
         return Err(EncryptionError::MalformedCiphertext);
     }
-    let (nonce_bytes, ciphertext) = sealed.split_at(NONCE_LEN);
+    let (nonce_slice, ciphertext) = sealed.split_at(NONCE_LEN);
 
     let key = Key::<Aes256Gcm>::from(*key_bytes);
     let cipher = Aes256Gcm::new(&key);
-    let nonce_bytes: [u8; NONCE_LEN] = nonce_bytes
-        .try_into()
-        .expect("split_at guarantees exactly NONCE_LEN bytes");
+    let mut nonce_bytes = [0u8; NONCE_LEN];
+    nonce_bytes.copy_from_slice(nonce_slice);
     let nonce = Nonce::from(nonce_bytes);
 
     cipher
