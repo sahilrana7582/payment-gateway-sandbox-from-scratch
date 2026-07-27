@@ -88,28 +88,28 @@ jobs:
   #         rust-version: stable
 
   # 4. AUDIT — RustSec advisory database (CVE check on all deps)
-  # Will Uncomment Later. <====
-  # audit:
-  #   name: Security Audit
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: rustsec/audit-check@v1
-  #       with:
-  #         token: ${{ secrets.GITHUB_TOKEN }}
-
-  # 5. SECRETS — detect leaked keys/tokens before they hit the DB
-  secrets:
-    name: Secret Scan
+  audit:
+    name: Security Audit
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v1
         with:
-          fetch-depth: 0            # Full history — gitleaks scans all commits
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # 5. SECRETS — detect leaked keys/tokens before they hit the DB
+  # Will Uncomment Later. <====
+  # secrets:
+  #   name: Secret Scan
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0            # Full history — gitleaks scans all commits
+
+  #     - uses: gitleaks/gitleaks-action@v2
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 # ────────────────────────────────────────────────────────────────────────────────
 # ROUND 2 — Compile gates. Run only after format passes (no point compiling
@@ -223,8 +223,8 @@ jobs:
       - fmt
       - clippy
       # - deny
-      # - audit
-      - secrets
+      - audit
+      # - secrets
       - check
       # - msrv
       - test-unit
