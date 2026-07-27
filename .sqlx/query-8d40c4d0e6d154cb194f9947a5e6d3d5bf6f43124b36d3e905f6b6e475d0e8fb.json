@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO ledger_transactions\n            (id, kind, reference_type, reference_id, description, created_at)\n        VALUES ($1, $2, $3, $4, $5, $6)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "ledger_transaction_kind",
+            "kind": {
+              "Enum": [
+                "payment_captured",
+                "fee_charged",
+                "refund_issued",
+                "fee_refunded",
+                "dispute_opened",
+                "dispute_won",
+                "dispute_lost",
+                "funds_released",
+                "payout_paid",
+                "reserve_held",
+                "reserve_released"
+              ]
+            }
+          }
+        },
+        "Text",
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8d40c4d0e6d154cb194f9947a5e6d3d5bf6f43124b36d3e905f6b6e475d0e8fb"
+}

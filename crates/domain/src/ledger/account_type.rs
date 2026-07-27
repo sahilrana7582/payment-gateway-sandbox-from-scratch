@@ -20,6 +20,11 @@ pub enum BalanceDirection {
 /// is a **credit**, a **negative** amount is a **debit**. A transaction is
 /// valid only when all entries sum to exactly zero.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "db", derive(sqlx::Type))]
+#[cfg_attr(
+    feature = "db",
+    sqlx(type_name = "ledger_account_type", rename_all = "snake_case")
+)]
 #[serde(rename_all = "snake_case")]
 pub enum AccountType {
     /// Funds in flight from the card network. Debited when a payment captures.
