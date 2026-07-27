@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO refunds\n            (id, payment_id, merchant_id, amount_minor, currency, reason,\n             status, notes, created_at, processed_at)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, '{}', $8, $9)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Int8",
+        "Bpchar",
+        "Text",
+        {
+          "Custom": {
+            "name": "refund_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "processed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "112523287de0b2ca23c0f1f462e966991fc93e5bf771ce2b0cec95da43a1533e"
+}
