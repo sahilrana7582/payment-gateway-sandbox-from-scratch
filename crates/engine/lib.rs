@@ -4,7 +4,7 @@ pub mod error;
 pub mod event;
 pub mod fees;
 pub mod ledger;
-// pub mod order;
+pub mod order;
 // pub mod payment;
 
 pub use error::{EngineError, EngineResult};
