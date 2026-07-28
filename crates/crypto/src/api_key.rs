@@ -69,8 +69,7 @@ pub fn generate(prefix: &str) -> Result<GeneratedKey, KeyError> {
 /// API credentials. The Argon2 functions below remain for dashboard
 /// passwords, where they are the right tool.
 pub fn lookup_hash(plaintext: &str) -> String {
-    use sha2::{Digest, Sha256};
-    hex::encode(Sha256::digest(plaintext.as_bytes()))
+    crate::digest::sha256_hex(plaintext.as_bytes())
 }
 
 /// Argon2id hash of a key's plaintext.
