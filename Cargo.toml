@@ -7,6 +7,7 @@ members = [
     "crates/queue",
     "crates/simulator",
     "crates/engine",
+    "crates/webhooks",
     ]
 
 [workspace.package]
@@ -29,6 +30,7 @@ rand        = "0.8"
 hex         = "0.4"
 tokio       = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
 tracing     = "0.1"
+reqwest     = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 sqlx = { version = "0.9.0", default-features = false, features = [
     "postgres",
     "runtime-tokio",

@@ -124,6 +124,25 @@ pub async fn record_attempt(
     Ok(())
 }
 
+/// Fetch one delivery row (the worker reads this for the attempt count).
+pub async fn find_by_id(pool: &PgPool, id: Uuid) -> StoreResult<WebhookDelivery> {
+    let row = sqlx::query_as!(
+        DeliveryRow,
+        r#"
+        SELECT id, event_id, endpoint_id, attempt,
+               status AS "status: DeliveryStatus",
+               response_status, response_body, duration_ms, next_retry_at
+        FROM webhook_deliveries
+        WHERE id = $1
+        "#,
+        id,
+    )
+    .fetch_optional(pool)
+    .await?
+    .ok_or_else(|| crate::error::StoreError::not_found("webhook_delivery"))?;
+    Ok(row.into())
+}
+
 /// The delivery history for an event (dashboard view).
 pub async fn list_for_event(pool: &PgPool, event_id: EventId) -> StoreResult<Vec<WebhookDelivery>> {
     let rows = sqlx::query_as!(
