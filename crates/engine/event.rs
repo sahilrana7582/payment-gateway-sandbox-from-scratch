@@ -41,9 +41,13 @@ pub async fn emit(
     data: Json,
     now: OffsetDateTime,
 ) -> EngineResult<EventId> {
-    let event_id = store::event::insert(tx, merchant_id, event_type, &data, API_VERSION, now).await?;
+    let event_id =
+        store::event::insert(tx, merchant_id, event_type, &data, API_VERSION, now).await?;
 
-    for ep in endpoints.iter().filter(|e| e.is_active() && e.wants(event_type)) {
+    for ep in endpoints
+        .iter()
+        .filter(|e| e.is_active() && e.wants(event_type))
+    {
         let delivery_id = store::webhook_delivery::insert_pending(tx, event_id, ep.id, now).await?;
 
         store::job::enqueue(
