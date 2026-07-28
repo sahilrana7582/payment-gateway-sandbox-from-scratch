@@ -5,6 +5,7 @@ members = [
     "crates/store",
     "crates/crypto",
     "crates/queue",
+    "crates/simulator",
     ]
 
 [workspace.package]
