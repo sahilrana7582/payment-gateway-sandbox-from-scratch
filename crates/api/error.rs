@@ -90,6 +90,23 @@ impl ApiError {
         }
     }
 
+    /// 503 — a dependency we need to answer the request was down or too slow.
+    /// Distinct from [`internal`](Self::internal) on purpose: this one tells the
+    /// caller the request never happened and is safe to retry. Never reuse an
+    /// authentication or validation status for an outage — a merchant told
+    /// "invalid API key" during a database blip will rotate credentials in the
+    /// middle of an incident.
+    pub fn unavailable() -> Self {
+        Self {
+            status: StatusCode::SERVICE_UNAVAILABLE,
+            err_type: "api_error",
+            code: "service_unavailable".into(),
+            message: "The service is temporarily unavailable. Please retry.".into(),
+            param: None,
+            payment_id: None,
+        }
+    }
+
     pub fn internal() -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,

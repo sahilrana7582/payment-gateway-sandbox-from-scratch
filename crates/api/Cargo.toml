@@ -14,7 +14,7 @@ simulator  = { path = "../simulator" }
 crypto     = { path = "../crypto" }
 axum       = {workspace = true}
 tower      = {workspace = true}
-tower-http = {workspace = true}
+tower-http = { workspace = true, features = ["trace"] }
 tokio      = {workspace = true}
 serde      = {workspace = true}
 serde_json = {workspace = true}
