@@ -104,8 +104,10 @@ pub async fn list_orders(
         .orders
         .list(auth.merchant_id, before, limit + 1)
         .await?;
-    let has_more = orders.len() as i64 > limit;
-    orders.truncate(limit as usize);
+    // `limit` is clamped to 1..=50 above, so the conversion always succeeds.
+    let limit = usize::try_from(limit).unwrap_or(usize::MAX);
+    let has_more = orders.len() > limit;
+    orders.truncate(limit);
 
     Ok(Json(json!({
         "data": orders.iter().map(engine::event::order_json).collect::<Vec<_>>(),
