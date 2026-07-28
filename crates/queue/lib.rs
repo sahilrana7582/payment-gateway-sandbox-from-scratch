@@ -2,7 +2,7 @@
 
 pub mod job;
 pub mod scheduler;
-// pub mod worker;
+pub mod worker;
 
-// pub use job::{JobError, JobHandler, JobResult};
+pub use job::{JobError, JobHandler, JobResult};
 // pub use worker::{Worker, WorkerConfig};
