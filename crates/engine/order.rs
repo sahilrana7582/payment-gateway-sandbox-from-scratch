@@ -16,6 +16,15 @@ use crate::error::{EngineError, EngineResult};
 /// Minimum chargeable amount in minor units, matching the DB CHECK constraint.
 pub const MIN_AMOUNT_MINOR: i64 = 100;
 
+/// Backstop on how many orders one query may return, so a caller that bypasses
+/// the API's own page-size validation still cannot ask for the whole table.
+///
+/// Deliberately set well above any page size the API offers. Paginating callers
+/// fetch one row past their page to compute `has_more`; a backstop equal to the
+/// maximum page size would silently swallow that extra row and report the last
+/// full page as the end of the collection.
+pub const MAX_LIST_LIMIT: i64 = 200;
+
 pub struct CreateOrderInput {
     pub amount_minor: i64,
     pub currency: Currency,
@@ -81,7 +90,7 @@ impl OrderService {
         before: Option<OffsetDateTime>,
         limit: i64,
     ) -> EngineResult<Vec<Order>> {
-        let limit = limit.clamp(1, 100);
+        let limit = limit.clamp(1, MAX_LIST_LIMIT);
         Ok(store::order::list_for_merchant(&self.pool, merchant_id, before, limit).await?)
     }
 }
