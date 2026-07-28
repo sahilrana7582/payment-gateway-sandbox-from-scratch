@@ -39,7 +39,9 @@ pub fn next_retry_at(attempts: i32, now: OffsetDateTime) -> Option<OffsetDateTim
     if attempts < 1 {
         return Some(now);
     }
-    let idx = (attempts - 1) as usize;
+    // attempts >= 1 is checked above, so attempts - 1 >= 0; fall back to an
+    // out-of-range index (rather than panicking) if that invariant ever breaks.
+    let idx = usize::try_from(attempts - 1).unwrap_or(usize::MAX);
     LADDER_SECS
         .get(idx)
         .map(|&secs| now + Duration::seconds(secs))
@@ -78,7 +80,7 @@ mod tests {
             Duration::hours(24),
         ];
         for (i, exp) in expected.iter().enumerate() {
-            let attempt = (i + 1) as i32;
+            let attempt = i32::try_from(i + 1).unwrap();
             assert_eq!(
                 next_retry_at(attempt, now()).unwrap(),
                 now() + *exp,
@@ -97,7 +99,7 @@ mod tests {
     #[test]
     fn ladder_length_matches_max_attempts() {
         // MAX_ATTEMPTS counts the initial try plus every retry in the ladder.
-        assert_eq!(LADDER_SECS.len() as i32 + 1, MAX_ATTEMPTS);
+        assert_eq!(i32::try_from(LADDER_SECS.len()).unwrap() + 1, MAX_ATTEMPTS);
     }
 
     #[test]
