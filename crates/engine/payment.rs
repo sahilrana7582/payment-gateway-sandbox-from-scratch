@@ -22,11 +22,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use domain::card::CardDetails;
 use domain::clock::Clock;
 use domain::id::{MerchantId, OrderId, PaymentId};
 use domain::order::Order;
 use domain::payment::{Capturable, Payment};
-use domain::card::CardDetails;
 use queue::job::kinds;
 use serde_json::json;
 use sqlx::PgPool;
