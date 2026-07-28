@@ -132,7 +132,13 @@ mod tests {
     async fn below_minimum_rejected(pool: PgPool) {
         let mid = seed_merchant(&pool).await;
         let err = service(&pool).create(mid, input(99)).await.unwrap_err();
-        assert!(matches!(err, EngineError::Validation { field: "amount", .. }));
+        assert!(matches!(
+            err,
+            EngineError::Validation {
+                field: "amount",
+                ..
+            }
+        ));
     }
 
     #[sqlx::test(migrations = "../../migrations")]

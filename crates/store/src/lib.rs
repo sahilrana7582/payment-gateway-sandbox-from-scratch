@@ -11,6 +11,7 @@ pub mod ledger;
 pub mod merchant;
 pub mod order;
 pub mod payment;
+pub mod payment_attempt;
 pub mod pool;
 pub mod refund;
 pub mod settlement;
