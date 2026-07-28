@@ -9,4 +9,4 @@ pub mod payment;
 
 pub use error::{EngineError, EngineResult};
 pub use order::{CreateOrderInput, OrderService};
-// pub use payment::{AttemptDecision, AttemptOutcome, CreatePaymentInput, PaymentService};
+pub use payment::{AttemptDecision, AttemptOutcome, CreatePaymentInput, PaymentService};

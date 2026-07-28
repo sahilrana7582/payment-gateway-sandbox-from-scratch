@@ -97,7 +97,7 @@ impl Worker {
     }
 
     /// One iteration: reap stale leases, claim a batch, execute it.
-    async fn tick(&self) -> Result<(), sqlx::Error> {
+    pub async fn tick(&self) -> Result<(), sqlx::Error> {
         let now = self.clock.now();
 
         // Reclaim jobs from workers that died mid-execution.
