@@ -83,14 +83,16 @@ mod tests {
         let app: Router = Router::new().route("/health/live", get(live));
 
         let response = app
-            .oneshot(Request::builder().uri("/health/live").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::builder()
+                    .uri("/health/live")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
-        assert_eq!(
-            response.headers().get(CACHE_CONTROL).unwrap(),
-            "no-store"
-        );
+        assert_eq!(response.headers().get(CACHE_CONTROL).unwrap(), "no-store");
     }
 }

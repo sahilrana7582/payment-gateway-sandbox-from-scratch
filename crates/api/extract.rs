@@ -73,11 +73,9 @@ impl From<JsonRejection> for ApiError {
                 e
             }
 
-            JsonRejection::JsonSyntaxError(_) => ApiError::invalid_request(
-                "json_invalid",
-                "Request body is not valid JSON.",
-                None,
-            ),
+            JsonRejection::JsonSyntaxError(_) => {
+                ApiError::invalid_request("json_invalid", "Request body is not valid JSON.", None)
+            }
 
             JsonRejection::MissingJsonContentType(_) => ApiError::unsupported_media_type(),
 
@@ -235,7 +233,10 @@ mod tests {
     }
 
     fn app() -> Router {
-        Router::new().route("/", post(|Json(d): Json<Demo>| async move { d.amount.to_string() }))
+        Router::new().route(
+            "/",
+            post(|Json(d): Json<Demo>| async move { d.amount.to_string() }),
+        )
     }
 
     async fn post_body(body: &str, content_type: Option<&str>) -> (StatusCode, Value) {
@@ -248,8 +249,13 @@ mod tests {
             .await
             .unwrap();
         let status = res.status();
-        let bytes = axum::body::to_bytes(res.into_body(), 64 * 1024).await.unwrap();
-        (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+        let bytes = axum::body::to_bytes(res.into_body(), 64 * 1024)
+            .await
+            .unwrap();
+        (
+            status,
+            serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+        )
     }
 
     #[tokio::test]
@@ -292,11 +298,8 @@ mod tests {
     async fn an_unknown_field_is_rejected_rather_than_ignored() {
         // A typo'd parameter that silently does nothing is how a merchant ends
         // up charging the wrong amount.
-        let (status, body) = post_body(
-            r#"{"amount": 100, "amunt": 999}"#,
-            Some("application/json"),
-        )
-        .await;
+        let (status, body) =
+            post_body(r#"{"amount": 100, "amunt": 999}"#, Some("application/json")).await;
         assert_eq!(status, StatusCode::BAD_REQUEST);
         assert!(body["error"]["message"].as_str().unwrap().contains("amunt"));
     }
@@ -315,7 +318,11 @@ mod tests {
     fn echoed_detail_is_bounded_and_stripped_of_control_characters() {
         let hostile = format!("{}\n\r\0{}", "a".repeat(MAX_ECHO), "b".repeat(50));
         let out = sanitize(&hostile);
-        assert!(out.chars().count() <= MAX_ECHO + 1, "got {} chars", out.chars().count());
+        assert!(
+            out.chars().count() <= MAX_ECHO + 1,
+            "got {} chars",
+            out.chars().count()
+        );
         assert!(!out.contains('\n') && !out.contains('\r') && !out.contains('\0'));
     }
 
@@ -325,7 +332,10 @@ mod tests {
             serde_param("card.exp_month: invalid type").as_deref(),
             Some("card.exp_month")
         );
-        assert_eq!(serde_param("notes[0]: too long").as_deref(), Some("notes[0]"));
+        assert_eq!(
+            serde_param("notes[0]: too long").as_deref(),
+            Some("notes[0]")
+        );
         // Prose, not a path — must not become a `param`.
         assert_eq!(serde_param("expected value at line 1 column 2"), None);
         assert_eq!(serde_param(""), None);

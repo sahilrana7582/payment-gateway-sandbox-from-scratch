@@ -120,9 +120,8 @@ async fn create(
     if state.config.simulate_latency {
         // Bounded by configuration, not by trust in the simulator: an artificial
         // delay must never be able to outlive the request budget.
-        let delay =
-            std::time::Duration::from_millis(u64::from(decision.latency_ms))
-                .min(state.config.max_simulated_latency);
+        let delay = std::time::Duration::from_millis(u64::from(decision.latency_ms))
+            .min(state.config.max_simulated_latency);
         tokio::time::sleep(delay).await;
     }
 

@@ -37,6 +37,8 @@ mod tests {
     fn output_is_lowercase_hex_of_fixed_width() {
         let d = sha256_hex(b"payment-sandbox");
         assert_eq!(d.len(), 64);
-        assert!(d.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()));
+        assert!(d
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()));
     }
 }

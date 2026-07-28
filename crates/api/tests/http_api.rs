@@ -411,7 +411,10 @@ async fn no_response_ever_echoes_a_full_card_number(pool: PgPool) {
         .auth(&token)
         .json_response(&app)
         .await;
-    assert!(!events.to_string().contains(pan), "PAN reached the event log");
+    assert!(
+        !events.to_string().contains(pan),
+        "PAN reached the event log"
+    );
 }
 
 // ===========================================================================
@@ -448,7 +451,9 @@ async fn cross_merchant_reads_are_404(pool: PgPool) {
 #[sqlx::test(migrations = "../../migrations")]
 async fn an_unknown_path_is_a_404_in_the_envelope(pool: PgPool) {
     let app = app(&pool);
-    let (status, body) = Call::new("GET", "/not_an_endpoint").json_response(&app).await;
+    let (status, body) = Call::new("GET", "/not_an_endpoint")
+        .json_response(&app)
+        .await;
 
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(body["error"]["code"], "unknown_endpoint");
@@ -519,7 +524,10 @@ async fn an_unknown_field_is_rejected_and_named(pool: PgPool) {
 
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert!(
-        body["error"]["message"].as_str().unwrap().contains("recipt"),
+        body["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("recipt"),
         "the message should name the offending field: {body}"
     );
 }
@@ -618,7 +626,10 @@ async fn a_caller_supplied_request_id_is_adopted(pool: PgPool) {
         .send(&app)
         .await;
 
-    assert_eq!(response.headers().get(&REQUEST_ID).unwrap(), "trace-abc-123");
+    assert_eq!(
+        response.headers().get(&REQUEST_ID).unwrap(),
+        "trace-abc-123"
+    );
 }
 
 #[sqlx::test(migrations = "../../migrations")]
@@ -630,8 +641,16 @@ async fn an_abusive_request_id_is_replaced_rather_than_echoed(pool: PgPool) {
         .header(REQUEST_ID, "short")
         .send(&app)
         .await;
-    let id = response.headers().get(&REQUEST_ID).unwrap().to_str().unwrap();
-    assert!(id.starts_with("req_"), "an unusable id must be replaced: {id}");
+    let id = response
+        .headers()
+        .get(&REQUEST_ID)
+        .unwrap()
+        .to_str()
+        .unwrap();
+    assert!(
+        id.starts_with("req_"),
+        "an unusable id must be replaced: {id}"
+    );
 }
 
 // ===========================================================================

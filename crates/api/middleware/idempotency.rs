@@ -96,11 +96,7 @@ pub async fn enforce(State(state): State<Arc<AppState>>, req: Request, next: Nex
     }
 }
 
-async fn guarded(
-    state: &Arc<AppState>,
-    req: Request,
-    next: Next,
-) -> Result<Response, ApiError> {
+async fn guarded(state: &Arc<AppState>, req: Request, next: Next) -> Result<Response, ApiError> {
     // Reads are naturally idempotent; a key on one is meaningless, not an error.
     if !is_mutating(req.method()) {
         return Ok(next.run(req).await);
@@ -172,9 +168,7 @@ async fn guarded(
         }
 
         AcquireOutcome::Acquired => {
-            let response = next
-                .run(Request::from_parts(parts, Body::from(body)))
-                .await;
+            let response = next.run(Request::from_parts(parts, Body::from(body))).await;
             Ok(record(state, auth, &key, response).await)
         }
     }
@@ -182,12 +176,7 @@ async fn guarded(
 
 /// Run-and-record: buffer the response, decide whether it is worth replaying,
 /// and hand back an untouched copy to the caller either way.
-async fn record(
-    state: &Arc<AppState>,
-    auth: AuthCtx,
-    key: &str,
-    response: Response,
-) -> Response {
+async fn record(state: &Arc<AppState>, auth: AuthCtx, key: &str, response: Response) -> Response {
     let status = response.status();
     let (parts, body) = response.into_parts();
 

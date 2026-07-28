@@ -79,8 +79,9 @@ pub fn webhook_url(raw: &str) -> ApiResult<String> {
         )));
     }
 
-    let url = Url::parse(raw)
-        .map_err(|_| invalid("Webhook URL is not a valid absolute URL, e.g. https://example.com/hooks."))?;
+    let url = Url::parse(raw).map_err(|_| {
+        invalid("Webhook URL is not a valid absolute URL, e.g. https://example.com/hooks.")
+    })?;
 
     if !matches!(url.scheme(), "http" | "https") {
         return Err(invalid("Webhook URL must use the http or https scheme."));
@@ -229,7 +230,10 @@ mod tests {
     #[test]
     fn normalises_what_it_returns() {
         // A bare authority gains the path the delivery worker will actually use.
-        assert_eq!(webhook_url("https://acme.dev").unwrap(), "https://acme.dev/");
+        assert_eq!(
+            webhook_url("https://acme.dev").unwrap(),
+            "https://acme.dev/"
+        );
     }
 
     #[test]
@@ -282,16 +286,29 @@ mod tests {
 
     #[test]
     fn rejects_malformed_types() {
-        for bad in ["payment", "Payment.Captured", "payment.", ".captured", "a b.c"] {
+        for bad in [
+            "payment",
+            "Payment.Captured",
+            "payment.",
+            ".captured",
+            "a b.c",
+        ] {
             let err = enabled_events(&[bad.to_string()]).unwrap_err();
-            assert_eq!(err.param.as_deref(), Some("enabled_events"), "accepted {bad}");
+            assert_eq!(
+                err.param.as_deref(),
+                Some("enabled_events"),
+                "accepted {bad}"
+            );
         }
     }
 
     #[test]
     fn rejects_duplicates_and_oversized_lists() {
         let dup = vec!["payment.captured".to_string(); 2];
-        assert!(enabled_events(&dup).unwrap_err().message.contains("Duplicate"));
+        assert!(enabled_events(&dup)
+            .unwrap_err()
+            .message
+            .contains("Duplicate"));
 
         let many: Vec<String> = (0..=MAX_ENABLED_EVENTS)
             .map(|i| format!("payment.e{i}"))

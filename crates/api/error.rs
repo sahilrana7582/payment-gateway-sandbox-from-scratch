@@ -67,7 +67,12 @@ impl ApiError {
     /// The base constructor. Prefer one of the named helpers below; they exist
     /// so that the `type`/`status` pairing is decided in one place per class of
     /// error rather than at every call site.
-    fn new(status: StatusCode, err_type: &'static str, code: &str, message: impl Into<String>) -> Self {
+    fn new(
+        status: StatusCode,
+        err_type: &'static str,
+        code: &str,
+        message: impl Into<String>,
+    ) -> Self {
         Self {
             status,
             err_type,
@@ -202,12 +207,7 @@ impl ApiError {
     pub fn card(code: &str, message: impl Into<String>, payment_id: Option<String>) -> Self {
         Self {
             payment_id,
-            ..Self::new(
-                StatusCode::PAYMENT_REQUIRED,
-                "card_error",
-                code,
-                message,
-            )
+            ..Self::new(StatusCode::PAYMENT_REQUIRED, "card_error", code, message)
         }
     }
 
@@ -308,10 +308,9 @@ impl From<StoreError> for ApiError {
     fn from(e: StoreError) -> Self {
         match &e {
             StoreError::NotFound { resource } => ApiError::not_found(resource),
-            StoreError::Conflict { .. } => ApiError::conflict(
-                "resource_already_exists",
-                "That resource already exists.",
-            ),
+            StoreError::Conflict { .. } => {
+                ApiError::conflict("resource_already_exists", "That resource already exists.")
+            }
             other => ApiError::internal_from(other, "store"),
         }
     }
@@ -394,7 +393,10 @@ mod tests {
             assert!(e["type"].is_string(), "{body}");
             assert!(e["code"].is_string(), "{body}");
             assert!(e["message"].is_string(), "{body}");
-            assert!(e.get("param").is_some(), "param key must always exist: {body}");
+            assert!(
+                e.get("param").is_some(),
+                "param key must always exist: {body}"
+            );
             assert_eq!(body.as_object().unwrap().len(), 1, "error is the only key");
         }
     }
@@ -412,7 +414,10 @@ mod tests {
     async fn retryable_errors_advertise_retry_after() {
         for err in [ApiError::unavailable(), ApiError::timeout()] {
             let res = err.into_response();
-            assert!(res.headers().contains_key(RETRY_AFTER), "missing Retry-After");
+            assert!(
+                res.headers().contains_key(RETRY_AFTER),
+                "missing Retry-After"
+            );
         }
         // A validation failure is not retryable and must not suggest otherwise.
         let res = ApiError::invalid_request("c", "m", None).into_response();
@@ -428,7 +433,10 @@ mod tests {
 
     #[test]
     fn statuses_match_their_semantics() {
-        assert_eq!(ApiError::unavailable().status, StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(
+            ApiError::unavailable().status,
+            StatusCode::SERVICE_UNAVAILABLE
+        );
         assert_eq!(ApiError::timeout().status, StatusCode::GATEWAY_TIMEOUT);
         assert_eq!(ApiError::conflict("c", "m").status, StatusCode::CONFLICT);
         assert!(ApiError::internal().is_server_fault());

@@ -87,8 +87,7 @@ impl ApiConfig {
     /// which is what the store layer speaks.
     #[must_use]
     pub fn idempotency_ttl_time(&self) -> time::Duration {
-        time::Duration::try_from(self.idempotency_ttl)
-            .unwrap_or_else(|_| time::Duration::hours(24))
+        time::Duration::try_from(self.idempotency_ttl).unwrap_or_else(|_| time::Duration::hours(24))
     }
 }
 

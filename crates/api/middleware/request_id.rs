@@ -124,9 +124,7 @@ pub async fn propagate(mut req: Request, next: Next) -> Response {
         status = field::Empty,
     );
 
-    let mut response = CURRENT
-        .scope(id, next.run(req).instrument(span))
-        .await;
+    let mut response = CURRENT.scope(id, next.run(req).instrument(span)).await;
 
     // A handler that set its own correlation header keeps it.
     response.headers_mut().entry(HEADER).or_insert(header_value);

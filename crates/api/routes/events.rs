@@ -40,9 +40,13 @@ async fn list(
     auth.require(Scope::PaymentsRead)?;
 
     let page = params.resolve(&state.config)?;
-    let events =
-        store::event::list_for_merchant(&state.pool, auth.merchant_id, page.before, page.fetch_limit())
-            .await?;
+    let events = store::event::list_for_merchant(
+        &state.pool,
+        auth.merchant_id,
+        page.before,
+        page.fetch_limit(),
+    )
+    .await?;
 
     Ok(Json(
         page.finish(events, render, |e| e.created_at).into_json(),
