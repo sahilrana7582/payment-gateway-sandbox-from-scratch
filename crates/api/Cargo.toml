@@ -14,7 +14,12 @@ simulator  = { path = "../simulator" }
 crypto     = { path = "../crypto" }
 axum       = {workspace = true}
 tower      = {workspace = true}
-tower-http = { workspace = true, features = ["trace"] }
+tower-http = { workspace = true, features = [
+    "trace",
+    "cors",
+    "catch-panic",
+    "sensitive-headers",
+] }
 tokio      = {workspace = true}
 serde      = {workspace = true}
 serde_json = {workspace = true}
@@ -23,6 +28,7 @@ time       = {workspace = true}
 thiserror  = {workspace = true}
 tracing    = {workspace = true}
 uuid       = {workspace = true}
+url        = "2"
 
 [dev-dependencies]
 tower          = { workspace = true, features = ["util"] }
