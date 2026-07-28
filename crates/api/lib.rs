@@ -2,9 +2,9 @@
 
 pub mod auth;
 pub mod error;
-// pub mod handlers;
+pub mod handlers;
 // pub mod router;
 pub mod state;
 
 // pub use router::router;
-// pub use state::AppState;
+pub use state::AppState;
