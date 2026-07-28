@@ -100,7 +100,10 @@ pub async fn list_orders(
     let before = parse_before(params.before.as_deref())?;
 
     // Fetch one extra to compute has_more without a count query.
-    let mut orders = state.orders.list(auth.merchant_id, before, limit + 1).await?;
+    let mut orders = state
+        .orders
+        .list(auth.merchant_id, before, limit + 1)
+        .await?;
     let has_more = orders.len() as i64 > limit;
     orders.truncate(limit as usize);
 
@@ -154,11 +157,18 @@ pub async fn create_payment(
 
     if let Some(cvc) = &req.cvc_ref() {
         if !(3..=4).contains(&cvc.len()) || !cvc.chars().all(|c| c.is_ascii_digit()) {
-            return Err(ApiError::card("incorrect_cvc", "The security code is malformed.", None));
+            return Err(ApiError::card(
+                "incorrect_cvc",
+                "The security code is malformed.",
+                None,
+            ));
         }
     }
 
-    let order_id: OrderId = req.order_id.parse().map_err(|_| ApiError::not_found("order"))?;
+    let order_id: OrderId = req
+        .order_id
+        .parse()
+        .map_err(|_| ApiError::not_found("order"))?;
 
     // The order supplies the amount the simulator needs. Ownership is checked
     // here; the engine re-locks and re-checks inside the transaction.
@@ -206,7 +216,10 @@ pub async fn create_payment(
         ));
     }
 
-    Ok((StatusCode::CREATED, Json(engine::event::payment_json(&payment))))
+    Ok((
+        StatusCode::CREATED,
+        Json(engine::event::payment_json(&payment)),
+    ))
 }
 
 impl CreatePaymentRequest {
@@ -228,7 +241,10 @@ fn map_decision(d: simulator::Decision) -> AttemptDecision {
         simulator::Outcome::RequiresAction => AttemptOutcome::RequireAction,
         simulator::Outcome::RiskHold => AttemptOutcome::RiskHold,
     };
-    AttemptDecision { outcome, latency_ms: d.latency_ms }
+    AttemptDecision {
+        outcome,
+        latency_ms: d.latency_ms,
+    }
 }
 
 pub async fn get_payment(
@@ -309,9 +325,10 @@ pub async fn list_webhook_endpoints(
     Extension(auth): Extension<AuthCtx>,
 ) -> Result<impl IntoResponse, ApiError> {
     auth.require(Scope::WebhooksManage)?;
-    let endpoints = store::webhook_endpoint::list_active_for_merchant(&state.pool, auth.merchant_id)
-        .await
-        .map_err(|_| ApiError::internal())?;
+    let endpoints =
+        store::webhook_endpoint::list_active_for_merchant(&state.pool, auth.merchant_id)
+            .await
+            .map_err(|_| ApiError::internal())?;
 
     // No signing_secret here — shown once at creation, then gone.
     Ok(Json(json!({
@@ -358,7 +375,10 @@ pub async fn list_events(
 pub async fn health(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     // A health check that doesn't touch the database reports a zombie as
     // healthy. One trivial query proves the whole path.
-    match sqlx::query_scalar!("SELECT 1 AS one").fetch_one(&state.pool).await {
+    match sqlx::query_scalar!("SELECT 1 AS one")
+        .fetch_one(&state.pool)
+        .await
+    {
         Ok(_) => (StatusCode::OK, Json(json!({ "status": "ok" }))),
         Err(_) => (
             StatusCode::SERVICE_UNAVAILABLE,

@@ -13,7 +13,10 @@ use crate::state::AppState;
 
 pub fn router(state: Arc<AppState>) -> Router {
     let authed = Router::new()
-        .route("/orders", post(handlers::create_order).get(handlers::list_orders))
+        .route(
+            "/orders",
+            post(handlers::create_order).get(handlers::list_orders),
+        )
         .route("/orders/{id}", get(handlers::get_order))
         .route("/payments", post(handlers::create_payment))
         .route("/payments/{id}", get(handlers::get_payment))
@@ -23,7 +26,10 @@ pub fn router(state: Arc<AppState>) -> Router {
             post(handlers::create_webhook_endpoint).get(handlers::list_webhook_endpoints),
         )
         .route("/events", get(handlers::list_events))
-        .layer(middleware::from_fn_with_state(state.clone(), auth::require_auth));
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth::require_auth,
+        ));
 
     Router::new()
         .route("/health", get(handlers::health))
@@ -123,8 +129,11 @@ mod tests {
         seed(&pool).await;
         let app = app(&pool);
         let (status, _) = call(
-            &app, "POST", "/v1/orders",
-            Some("sk_test_definitely_not_real"), Some(order_body()),
+            &app,
+            "POST",
+            "/v1/orders",
+            Some("sk_test_definitely_not_real"),
+            Some(order_body()),
         )
         .await;
         assert_eq!(status, StatusCode::UNAUTHORIZED);
@@ -135,12 +144,18 @@ mod tests {
         seed(&pool).await;
         let app = app(&pool);
         let (status, body) = call(
-            &app, "POST", "/v1/orders",
-            Some("pk_test_whatever"), Some(order_body()),
+            &app,
+            "POST",
+            "/v1/orders",
+            Some("pk_test_whatever"),
+            Some(order_body()),
         )
         .await;
         assert_eq!(status, StatusCode::UNAUTHORIZED);
-        assert!(body["error"]["message"].as_str().unwrap().contains("secret key"));
+        assert!(body["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("secret key"));
     }
 
     #[sqlx::test(migrations = "../../migrations")]
@@ -156,7 +171,10 @@ mod tests {
         assert_eq!(order["status"], "created");
 
         let (status, payment) = call(
-            &app, "POST", "/v1/payments", Some(&token),
+            &app,
+            "POST",
+            "/v1/payments",
+            Some(&token),
             Some(payment_body(order_id, "4242424242424242")),
         )
         .await;
@@ -166,16 +184,24 @@ mod tests {
         assert_eq!(payment["card"]["last4"], "4242");
 
         // Order reflects payment.
-        let (_, fetched) =
-            call(&app, "GET", &format!("/v1/orders/{order_id}"), Some(&token), None).await;
+        let (_, fetched) = call(
+            &app,
+            "GET",
+            &format!("/v1/orders/{order_id}"),
+            Some(&token),
+            None,
+        )
+        .await;
         assert_eq!(fetched["status"], "paid");
         assert_eq!(fetched["amount_paid"], 150000);
 
         // Both events visible.
         let (_, events) = call(&app, "GET", "/v1/events", Some(&token), None).await;
         let types: Vec<&str> = events["data"]
-            .as_array().unwrap()
-            .iter().map(|e| e["type"].as_str().unwrap())
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| e["type"].as_str().unwrap())
             .collect();
         assert!(types.contains(&"payment.captured"));
         assert!(types.contains(&"order.paid"));
@@ -186,12 +212,14 @@ mod tests {
         let (_mid, token) = seed(&pool).await;
         let app = app(&pool);
 
-        let (_, order) =
-            call(&app, "POST", "/v1/orders", Some(&token), Some(order_body())).await;
+        let (_, order) = call(&app, "POST", "/v1/orders", Some(&token), Some(order_body())).await;
         let order_id = order["id"].as_str().unwrap();
 
         let (status, body) = call(
-            &app, "POST", "/v1/payments", Some(&token),
+            &app,
+            "POST",
+            "/v1/payments",
+            Some(&token),
             Some(payment_body(order_id, "4000000000009995")),
         )
         .await;
@@ -202,7 +230,11 @@ mod tests {
         // The failed payment was committed and is fetchable by the id in the error.
         let payment_id = body["error"]["payment_id"].as_str().unwrap();
         let (status, payment) = call(
-            &app, "GET", &format!("/v1/payments/{payment_id}"), Some(&token), None,
+            &app,
+            "GET",
+            &format!("/v1/payments/{payment_id}"),
+            Some(&token),
+            None,
         )
         .await;
         assert_eq!(status, StatusCode::OK);
@@ -215,13 +247,15 @@ mod tests {
         let (_mid, token) = seed(&pool).await;
         let app = app(&pool);
 
-        let (_, order) =
-            call(&app, "POST", "/v1/orders", Some(&token), Some(order_body())).await;
+        let (_, order) = call(&app, "POST", "/v1/orders", Some(&token), Some(order_body())).await;
         let order_id = order["id"].as_str().unwrap();
 
         // Valid Luhn, not in the test set — the safety gate.
         let (status, body) = call(
-            &app, "POST", "/v1/payments", Some(&token),
+            &app,
+            "POST",
+            "/v1/payments",
+            Some(&token),
             Some(payment_body(order_id, "4111111111111111")),
         )
         .await;
@@ -230,8 +264,14 @@ mod tests {
         assert!(body["error"]["payment_id"].is_null());
 
         // Nothing was written; the order is untouched.
-        let (_, fetched) =
-            call(&app, "GET", &format!("/v1/orders/{order_id}"), Some(&token), None).await;
+        let (_, fetched) = call(
+            &app,
+            "GET",
+            &format!("/v1/orders/{order_id}"),
+            Some(&token),
+            None,
+        )
+        .await;
         assert_eq!(fetched["status"], "created");
     }
 
@@ -240,12 +280,14 @@ mod tests {
         let (_mid, token) = seed(&pool).await;
         let app = app(&pool);
 
-        let (_, order) =
-            call(&app, "POST", "/v1/orders", Some(&token), Some(order_body())).await;
+        let (_, order) = call(&app, "POST", "/v1/orders", Some(&token), Some(order_body())).await;
         let order_id = order["id"].as_str().unwrap();
 
         let (status, payment) = call(
-            &app, "POST", "/v1/payments", Some(&token),
+            &app,
+            "POST",
+            "/v1/payments",
+            Some(&token),
             Some(payment_body(order_id, "4000000000000077")),
         )
         .await;
@@ -254,7 +296,11 @@ mod tests {
         let pid = payment["id"].as_str().unwrap();
 
         let (status, captured) = call(
-            &app, "POST", &format!("/v1/payments/{pid}/capture"), Some(&token), None,
+            &app,
+            "POST",
+            &format!("/v1/payments/{pid}/capture"),
+            Some(&token),
+            None,
         )
         .await;
         assert_eq!(status, StatusCode::OK);
@@ -267,12 +313,18 @@ mod tests {
         let app = app(&pool);
 
         let (status, created) = call(
-            &app, "POST", "/v1/webhook_endpoints", Some(&token),
+            &app,
+            "POST",
+            "/v1/webhook_endpoints",
+            Some(&token),
             Some(json!({ "url": "https://shop.acme.dev/webhooks" })),
         )
         .await;
         assert_eq!(status, StatusCode::CREATED);
-        assert!(created["signing_secret"].as_str().unwrap().starts_with("whsec_"));
+        assert!(created["signing_secret"]
+            .as_str()
+            .unwrap()
+            .starts_with("whsec_"));
 
         let (_, listed) = call(&app, "GET", "/v1/webhook_endpoints", Some(&token), None).await;
         assert!(listed["data"][0]["signing_secret"].is_null()); // never again
@@ -293,13 +345,22 @@ mod tests {
         .unwrap();
 
         let app = app(&pool);
-        let (_, order) =
-            call(&app, "POST", "/v1/orders", Some(&token1), Some(order_body())).await;
+        let (_, order) = call(
+            &app,
+            "POST",
+            "/v1/orders",
+            Some(&token1),
+            Some(order_body()),
+        )
+        .await;
         let order_id = order["id"].as_str().unwrap();
 
         let (status, _) = call(
-            &app, "GET", &format!("/v1/orders/{order_id}"),
-            Some(&gk2.plaintext), None,
+            &app,
+            "GET",
+            &format!("/v1/orders/{order_id}"),
+            Some(&gk2.plaintext),
+            None,
         )
         .await;
         assert_eq!(status, StatusCode::NOT_FOUND); // not 403 — existence never leaks

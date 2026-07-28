@@ -104,8 +104,7 @@ const LOOKUP_TIMEOUT: Duration = Duration::from_secs(2);
 
 /// Realm advertised in `WWW-Authenticate` challenges (RFC 6750 §3).
 const CHALLENGE_ANONYMOUS: &str = r#"Bearer realm="payment-sandbox""#;
-const CHALLENGE_INVALID_TOKEN: &str =
-    r#"Bearer realm="payment-sandbox", error="invalid_token""#;
+const CHALLENGE_INVALID_TOKEN: &str = r#"Bearer realm="payment-sandbox", error="invalid_token""#;
 const CHALLENGE_INSUFFICIENT_SCOPE: &str =
     r#"Bearer realm="payment-sandbox", error="insufficient_scope""#;
 
@@ -199,7 +198,9 @@ impl FromIterator<Scope> for ScopeSet {
 
 impl std::fmt::Debug for ScopeSet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_set().entries(self.iter().map(Scope::as_str)).finish()
+        f.debug_set()
+            .entries(self.iter().map(Scope::as_str))
+            .finish()
     }
 }
 
