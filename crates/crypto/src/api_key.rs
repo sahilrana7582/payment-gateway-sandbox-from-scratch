@@ -52,9 +52,25 @@ pub fn generate(prefix: &str) -> Result<GeneratedKey, KeyError> {
     OsRng.fill_bytes(&mut bytes);
     let body = hex::encode(bytes);
     let plaintext = format!("{prefix}_{body}");
-    let hash = hash(&plaintext)?;
+    let hash = lookup_hash(&plaintext);
 
     Ok(GeneratedKey { plaintext, hash })
+}
+
+/// Deterministic lookup hash for API tokens: SHA-256, hex encoded.
+///
+/// # Why SHA-256 here when passwords get Argon2
+///
+/// Argon2's deliberate slowness defends LOW-entropy secrets (passwords)
+/// against brute force. API keys carry 256 bits of entropy — brute force is
+/// already impossible — and the auth middleware must look a presented token
+/// up by index, which a salted hash can never support (you'd have to run
+/// Argon2 against every row). SHA-256-of-token is the standard design for
+/// API credentials. The Argon2 functions below remain for dashboard
+/// passwords, where they are the right tool.
+pub fn lookup_hash(plaintext: &str) -> String {
+    use sha2::{Digest, Sha256};
+    hex::encode(Sha256::digest(plaintext.as_bytes()))
 }
 
 /// Argon2id hash of a key's plaintext.
@@ -128,16 +144,16 @@ mod tests {
     }
 
     #[test]
-    fn verify_accepts_the_correct_key() {
+    fn generated_hash_is_the_deterministic_lookup_hash() {
         let k = generate("sk_test").unwrap();
-        assert!(verify(&k.plaintext, &k.hash).unwrap());
+        assert_eq!(lookup_hash(&k.plaintext), k.hash);
     }
 
     #[test]
-    fn verify_rejects_a_wrong_key() {
+    fn different_keys_have_different_lookup_hashes() {
         let k = generate("sk_test").unwrap();
         let other = generate("sk_test").unwrap();
-        assert!(!verify(&other.plaintext, &k.hash).unwrap());
+        assert_ne!(lookup_hash(&other.plaintext), k.hash);
     }
 
     #[test]
