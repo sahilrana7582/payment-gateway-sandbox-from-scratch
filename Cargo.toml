@@ -9,6 +9,7 @@ members = [
     "crates/engine",
     "crates/webhooks",
     "crates/api",
+    "crates/sandbox-server",
     ]
 
 [workspace.package]
@@ -32,9 +33,13 @@ hex         = "0.4"
 tokio       = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
 tracing     = "0.1"
 reqwest     = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
-axum        = "0.7"
+axum        = "0.8.9"
 tower       = "0.5"
 tower-http  = "0.7.0"
+anyhow      = "1"
+tokio-util  = "0.7"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+envconfig   = "0.11"
 sqlx = { version = "0.9.0", default-features = false, features = [
     "postgres",
     "runtime-tokio",
