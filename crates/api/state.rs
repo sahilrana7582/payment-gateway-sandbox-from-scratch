@@ -13,6 +13,7 @@
 use std::sync::Arc;
 
 use domain::clock::Clock;
+use engine::refund::RefundService;
 use engine::{OrderService, PaymentService};
 use sqlx::PgPool;
 
@@ -24,6 +25,7 @@ pub struct AppState {
     pub clock: Arc<dyn Clock>,
     pub orders: OrderService,
     pub payments: PaymentService,
+    pub refunds: RefundService,
     /// Short-lived memo of API key lookups, so authentication does not cost a
     /// database round trip per request. See `auth` for the revocation-window
     /// tradeoff this buys — the key-revoke handler must call
@@ -64,6 +66,7 @@ impl AppState {
         Arc::new(Self {
             orders: OrderService::new(pool.clone(), clock.clone()),
             payments: PaymentService::new(pool.clone(), clock.clone(), fingerprint_pepper),
+            refunds: RefundService::new(pool.clone(), clock.clone()),
             pool,
             clock,
             auth_cache: AuthCache::new(),
