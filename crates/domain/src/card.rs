@@ -13,6 +13,12 @@ pub enum CardBrand {
     Visa,
     Mastercard,
     Amex,
+    // `rename_all = "snake_case"` would spell this `ru_pay`, which matches
+    // neither `as_str` nor the `card_brand` Postgres enum — inserting a RuPay
+    // payment would fail at the driver with a 500. Pinned explicitly on both
+    // representations so all three spellings stay one word.
+    #[cfg_attr(feature = "db", sqlx(rename = "rupay"))]
+    #[serde(rename = "rupay")]
     RuPay,
     Discover,
     Unknown,
@@ -164,6 +170,25 @@ mod tests {
 
     const VISA_TEST: &str = "4242424242424242";
     const MASTERCARD_TEST: &str = "5555555555554444";
+
+    /// `as_str` is what the API renders, serde is what the event payloads and
+    /// caches use, and the `sqlx` spelling is what Postgres stores. A variant
+    /// where they disagree inserts fine in unit tests and 500s in production —
+    /// which is exactly what `RuPay` did before it was pinned.
+    #[test]
+    fn every_brand_serialises_the_same_way_it_renders() {
+        for brand in [
+            CardBrand::Visa,
+            CardBrand::Mastercard,
+            CardBrand::Amex,
+            CardBrand::RuPay,
+            CardBrand::Discover,
+            CardBrand::Unknown,
+        ] {
+            let json = serde_json::to_string(&brand).unwrap();
+            assert_eq!(json, format!("\"{}\"", brand.as_str()), "{brand}");
+        }
+    }
 
     #[test]
     fn valid_visa_card_constructs() {
