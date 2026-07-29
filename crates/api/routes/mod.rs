@@ -31,6 +31,7 @@ pub mod events;
 pub mod health;
 pub mod orders;
 pub mod payments;
+pub mod refunds;
 pub mod webhook_endpoints;
 
 use std::any::Any;
@@ -65,6 +66,7 @@ pub fn router(state: Arc<AppState>) -> Router {
     let authed = Router::new()
         .merge(orders::routes())
         .merge(payments::routes())
+        .merge(refunds::routes())
         .merge(webhook_endpoints::routes())
         .merge(events::routes())
         // Fallbacks are declared before the layers so that a 404 or 405 under

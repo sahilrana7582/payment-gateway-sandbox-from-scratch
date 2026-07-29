@@ -78,17 +78,50 @@ pub async fn post_capture(
     Ok(())
 }
 
-/// Postings for a refund. Reverses the capture proportionally:
+/// The portion of a payment's fee being returned to the merchant on a refund.
 ///
-///   refund_issued:  debit  merchant_pending  refund_amount
-///                   credit gateway_clearing  refund_amount
+/// Split so the ledger can reverse `platform_revenue` and `tax_payable`
+/// independently — the tax authority's share must come back out of the tax
+/// account, not be netted against revenue.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FeeRefund {
+    pub base: i64,
+    pub tax: i64,
+}
+
+impl FeeRefund {
+    #[must_use]
+    pub const fn total(&self) -> i64 {
+        self.base + self.tax
+    }
+
+    #[must_use]
+    pub const fn is_zero(&self) -> bool {
+        self.base == 0 && self.tax == 0
+    }
+}
+
+/// Postings for a refund. Up to two ledger transactions.
 ///
-/// Fee reversal (fee_refunded) lands with the refund milestone — v1 skeleton
-/// refunds the gross amount only; proportional fee refund is M-refunds work.
+/// ```text
+/// refund_issued:  debit  merchant_pending   refund_amount
+///                 credit gateway_clearing   refund_amount
+///
+/// fee_refunded:   debit  platform_revenue   fee.base   (skipped if 0)
+///                 debit  tax_payable        fee.tax    (skipped if 0)
+///                 credit merchant_pending   fee.total
+/// ```
+///
+/// Zero-amount entries are skipped rather than posted: `LedgerEntry` rejects
+/// them, and a zero entry carries no information. That is why the fee
+/// transaction is assembled conditionally instead of unconditionally — a USD
+/// payment has no tax component, and a very small partial refund may round to
+/// no fee return at all.
 pub async fn post_refund(
     tx: &mut PgTx<'_>,
     merchant_id: MerchantId,
     refund_amount: Money,
+    fee: FeeRefund,
     refund_uuid: Uuid,
     now: OffsetDateTime,
 ) -> EngineResult<()> {
@@ -106,11 +139,42 @@ pub async fn post_refund(
     )
     .await?;
 
-    let txn = TransactionBuilder::new(LedgerTransactionKind::RefundIssued)
+    let refund_txn = TransactionBuilder::new(LedgerTransactionKind::RefundIssued)
         .debit(pending.id, refund_amount)?
         .credit(clearing.id, refund_amount)?
         .build()?;
-    store::ledger::post(tx, &txn, Some("refund"), Some(refund_uuid), None, now).await?;
+    store::ledger::post(
+        tx,
+        &refund_txn,
+        Some("refund"),
+        Some(refund_uuid),
+        None,
+        now,
+    )
+    .await?;
+
+    if fee.is_zero() {
+        return Ok(());
+    }
+
+    let mut builder = TransactionBuilder::new(LedgerTransactionKind::FeeRefunded)
+        .credit(pending.id, Money::new(fee.total(), currency))?;
+
+    if fee.base > 0 {
+        let revenue =
+            store::ledger::find_platform_account(&mut **tx, AccountType::PlatformRevenue, currency)
+                .await?;
+        builder = builder.debit(revenue.id, Money::new(fee.base, currency))?;
+    }
+    if fee.tax > 0 {
+        let tax_acct =
+            store::ledger::find_platform_account(&mut **tx, AccountType::TaxPayable, currency)
+                .await?;
+        builder = builder.debit(tax_acct.id, Money::new(fee.tax, currency))?;
+    }
+
+    let fee_txn = builder.build()?;
+    store::ledger::post(tx, &fee_txn, Some("refund"), Some(refund_uuid), None, now).await?;
 
     Ok(())
 }
@@ -218,10 +282,13 @@ mod tests {
         post_capture(&mut tx, mid, amount, &fees, Uuid::now_v7(), now())
             .await
             .unwrap();
+
+        let refund_fee = FeeRefund { base: 2, tax: 1 };
         post_refund(
             &mut tx,
             mid,
             Money::new(50_000, Currency::Inr),
+            refund_fee,
             Uuid::now_v7(),
             now(),
         )
@@ -237,6 +304,9 @@ mod tests {
             .find(|b| b.account_type == AccountType::MerchantPending)
             .unwrap();
         // amount - fee - refund
-        assert_eq!(pending.balance.minor(), 150_000 - 3_894 - 50_000);
+        assert_eq!(
+            pending.balance.minor(),
+            150_000 - fees.total - 50_000 + refund_fee.base + refund_fee.tax,
+        );
     }
 }

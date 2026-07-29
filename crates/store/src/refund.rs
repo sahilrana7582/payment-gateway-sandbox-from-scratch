@@ -28,6 +28,16 @@ pub enum RefundStatus {
     Failed,
 }
 
+impl RefundStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Pending => "pending",
+            Self::Processed => "processed",
+            Self::Failed => "failed",
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Refund {
     pub id: RefundId,

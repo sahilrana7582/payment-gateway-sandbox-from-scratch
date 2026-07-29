@@ -117,3 +117,23 @@ pub fn payment_event_data(p: &Payment, o: &Order) -> Json {
 pub fn order_event_data(o: &Order) -> Json {
     json!({ "order": order_json(o) })
 }
+
+pub fn refund_json(r: &store::refund::Refund) -> Json {
+    json!({
+        "id": r.id.to_string(),
+        "object": "refund",
+        "payment_id": r.payment_id.to_string(),
+        "amount": r.amount.minor(),
+        "currency": r.amount.currency().code(),
+        "reason": r.reason,
+        "status": r.status.as_str(),
+        "created_at": rfc3339(r.created_at),
+        "processed_at": r.processed_at.map(rfc3339),
+    })
+}
+
+/// Refund events carry the payment too, so a handler can see the resulting
+/// `amount_refunded` and `status` without a second call.
+pub fn refund_event_data(r: &store::refund::Refund, p: &Payment) -> Json {
+    json!({ "refund": refund_json(r), "payment": payment_json(p) })
+}
