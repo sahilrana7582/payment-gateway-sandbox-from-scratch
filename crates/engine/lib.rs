@@ -6,6 +6,7 @@ pub mod fees;
 pub mod ledger;
 pub mod order;
 pub mod payment;
+pub mod refund;
 
 pub use error::{EngineError, EngineResult};
 pub use order::{CreateOrderInput, OrderService};
